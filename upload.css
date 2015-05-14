@@ -1,0 +1,28 @@
+body {
+    font-family: 'Cantarell', sans-serif;
+    height: 99%;
+}
+
+#bar {
+    background-color: blue;
+    height: 10px;
+    transition: width 2s linear;
+    width: 0;
+}
+
+a {
+    color: black;
+    text-decoration: none;
+}
+
+a:hover .folder, a:hover .file {
+    text-decoration: underline;
+}
+
+ul {
+    list-style: none;
+}
+
+.folder.top {
+    font-weight: bold;
+}
