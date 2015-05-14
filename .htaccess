@@ -1,8 +1,24 @@
-RewriteEngine on  
-RewriteCond %{REQUEST_FILENAME} !-f  
-#RewriteCond %{REQUEST_FILENAME} !-d   
-RewriteRule ^(.*) upload.php?path=$1 [L,QSA] 
+RewriteEngine on
 
-  
-RewriteCond %{REQUEST_FILENAME} !-f  
-RewriteRule ^(.*)?(.*) upload.php?path=$1&$2 [L,QSA]
+# for all requested files which dosn't exists
+RewriteCond %{REQUEST_FILENAME} !-f
+
+# for all requested directories which dosn't exists
+#RewriteCond %{REQUEST_FILENAME} !-d
+
+# have requested URI a ? take first part as parameter path and the rest as extra parameter
+RewriteRule ^(.*)/([^/]*)?(.*)$ upload.php?path=$1&file=$2$3 [L,QSA]
+
+
+# for all requested files which dosn't exists
+RewriteCond %{REQUEST_FILENAME} !-f
+
+# have requested URI a ? take first part as parameter path and the rest as extra parameter
+RewriteRule ^(.*)?(.*)$ upload.php?path=&file=$1$2 [L,QSA]
+
+
+# for all requested files which dosn't exists
+#RewriteCond %{REQUEST_FILENAME} !-f
+
+# take requested URI as parameter path for upload.php
+#RewriteRule ^(.*) upload.php?file=$1 [L,QSA]
