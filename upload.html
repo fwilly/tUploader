@@ -1,69 +1,169 @@
 <!DOCTYPE html>
-<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><title>tUploader</title>
-<style type="text/css">
-  body{height:3000px;}
- </style>
-<script src="tUploader.min.js"></script><script>
-window.onload=function(){
-	
-	var log=document.getElementById('log');
-	// configure the uploader
-	tUploader.stdUploadPath="upload.json"
-	tUploader.varName='files';
-	tUploader.autoDroparea = true;
-	tUploader.preprocess = function(e,callback){
-		callback();
-	};
-	
-	tUploader.on("begin",function(params){console.log('begin',params);
-		log.innerHTML += '<br>START UPLOAD';
-	});
-	tUploader.on("success",function(params){console.log('success',params);
-	
-		log.innerHTML += '<br>Uploaded';
-		for (var i = 0; i < params.event.files.length; i++) {
-			var file = params.event.files[i];
-			log.innerHTML += '<br><a target="_blank" href="/uploads/'+file.name+'">'+file.name+' </a>';
-		}
-	});
-	tUploader.on("error",function(params){console.log('error',params);
-		log.innerHTML += '<br>UPLOAD ERROR on uploading:';
-	});
-	tUploader.on("progress",function(params){
-		document.getElementById("speed").innerHTML=params.bitrate?(params.bitrate)+'kb/s':"";
-		//log.innerHTML += '<br>progress:'+params.event.files[0].name +' :: '+params.progress+' :: '+ (params.bitrate)+'kb/s';
-		bar.style.width = parseInt(params.globalProgress*100) + '%';
-	});
-	
-	// fileList that have been uploaded before
-	(function(){
-		var xhr = new XMLHttpRequest()
-		xhr.open('GET', 'uploads.json', true);
-		xhr.onload = function(e){
-			var files = JSON.parse(xhr.response);
-			console.log(files);
-			log.innerHTML +='<h2>uploads</h2><div>';
-			for (var i = 0; i < files.length; i++) {
-				log.innerHTML += '<br /><a target="_blank" href="uploads/'+files[i]+'">'+files[i]+' </a> - <a href="delete.json?name='+files[i]+'">x</a>';
-			}
-			log.innerHTML += "</div><h2>your uploadLog</h2>";
-			
-		}
-		xhr.send();
-	})();
-}
-</script></head>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>tUploader</title>
+    <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc2/css/bootstrap-glyphicons.css" rel="stylesheet">
+    <link href='http://fonts.googleapis.com/css?family=Cantarell' rel='stylesheet' type='text/css'>
+    <link href="upload.css" rel="stylesheet">
+    <script src="tUploader.js"></script>
+    <script src="URI.js"></script>
+    <script>
+        window.onload = function () {
+            var log = document.getElementById('log');
+            var bar = document.getElementById('bar');
 
+            if(typeof tUploader == 'undefined') {
+                console.log('Cannot find tUploader. Was tUploader.js loaded?');
+            }
+            // configure the uploader
+            tUploader.stdUploadPath = "upload.json";
+            tUploader.varName = 'files';
+            tUploader.autoDroparea = true;
+
+            tUploader.preprocess = function (e, callback) {
+                callback();
+            };
+
+            tUploader.on("begin", function (params) {
+                console.log('begin', params);
+                log.innerHTML += '<br><span class="status begin">Upload started</span>';
+            });
+
+            tUploader.on("success", function (params) {
+                console.log('success', params);
+                log.innerHTML += '<br><span class="status success">Uploaded successful finished</span>';
+
+                location.reload();
+//                for (var i = 0; i < params.event.files.length; i++) {
+//                    var file = params.event.files[i];
+//                    log.innerHTML += '<br><a target="_blank" href="/uploads/' + file.name + '">' + file.name + ' </a>';
+//                }
+            });
+
+            tUploader.on("error", function (params) {
+                if(params) {
+                    console.log('error', params);
+                    log.innerHTML += '<br><span class="status error">Error on uploading</span>';
+                }
+            });
+
+            tUploader.on("progress", function (params) {
+                console.log('progress', params);
+                document.getElementById("speed").innerHTML = params.bitrate ? (params.bitrate) + 'kb/s' : "";
+                bar.style.width = parseInt(params.globalProgress * 100) + '%';
+            });
+
+            function simplifyPath(aPathParts, aStart, aEnd) {
+                var sStart = typeof aStart === 'undefined' || aStart == false ? '' : '/';
+                var sEnd = typeof aEnd === 'undefined' || aEnd == false ? '' : '/';
+
+                var sPath = (sStart + aPathParts.join('/') + sEnd).replace('//', '/');
+                if(sStart == '' && sPath.substr(0, 1) == '/') {
+                    sPath = sPath.substr(1);
+                }
+                if(sEnd == '' && sPath.substr(-1, 1) == '/') {
+                    sPath = sPath.substr(0, -1);
+                }
+                return sPath;
+            }
+
+            // fileList that have been uploaded before
+            (function () {
+                try {
+                    var xhr = new XMLHttpRequest();
+                    xhr.open('GET', 'uploads.json', true);
+                    xhr.onload = function () {
+                        var files = JSON.parse(xhr.response);
+                        if(files != null && files instanceof Array) {
+                            var path = (files[0] != null ? files[0] : "");
+                            if (path == ".") {
+                                uri = new URI(document.location.href);
+                                path = uri.directory();
+                            }
+                            var parent = simplifyPath([path]);
+                            parent = '/' + parent.substring(0, parent.lastIndexOf('/'));
+                            var sHtmlLi = "";
+                            var sHtml = '<ul>\n';
+                            sHtml += '  <li><a href="/" title="/"><span class="glyphicon glyphicon-folder-open" aria-hidden="true"></span></a>';
+                            sHtml += ' <a href="/" title="/"><span class="folder top">uploads</span></a>';
+                            var sParentPath = '';
+                            var tPathes = path.split('/');
+                            for (var n=0; n < tPathes.length; n++) {
+                                sParentPath += '/' + tPathes[n];
+                                sHtml += ' / <a href="' + sParentPath + '/" title="' + sParentPath + '">'
+                                    + '<span class="folder top">' + tPathes[n] + '</span></a>';
+                            }
+                            sHtml += ' <a href="" onclick="var newFolder = prompt(\'Folder name:\');'
+                                + '    if(newFolder != \'\') {'
+                                + '        this.href = \'create.json?name=\' + newFolder;'
+                                + '        return true;'
+                                + '    }'
+                                + '    return false;'
+                                + '" title="create folder"><span class="glyphicon glyphicon-plus-sign"></span></a>\n';
+                            sHtml += '    <ul>\n';
+                            for (var i = 1; i < files.length; i++) {
+                                sHtmlLi = '      <li>';
+                                switch (files[i][0]) {
+                                    case 'dir':
+                                        sHtmlLi += '<a href="'
+                                            + simplifyPath([files[i][1]], false, true)
+                                            + '" title="go into folder">'
+                                            + '<span class="glyphicon glyphicon-folder-close" aria-hidden="true"></span></a>';
+                                        sHtmlLi += ' <a href="'
+                                            + simplifyPath([files[i][1]], false, true)
+                                            + '" title="go into folder">'
+                                            + '<span class="folder">' + files[i][1] + '</span></a>';
+                                        break;
+                                    case 'file':
+                                    default:
+                                        sHtmlLi += '<a target="_blank" href="/uploads'
+                                            + simplifyPath([path, files[i][1]], true)
+                                            + '" title="download file">'
+                                            + '<span class="glyphicon glyphicon-file" aria-hidden="true"></span></a>';
+                                        sHtmlLi += ' <a target="_blank" href="/uploads'
+                                            + simplifyPath([path, files[i][1]], true)
+                                            + '" title="download file">'
+                                            + '<span class="file">' + files[i][1] + '</span></a>';
+                                        break;
+                                }
+                                sHtmlLi += ' <a target="_blank" href="/uploads'
+                                    + simplifyPath([path, files[i][1]], true)
+                                    + '" title="download">'
+                                    + '<span class="glyphicon glyphicon-download" aria-hidden="true"></span></a>';
+                                sHtmlLi += ' <a href="" onclick="if(confirm(\'Realy remove \\\''
+                                    + simplifyPath([path, files[i][1]], true)
+                                    + '\\\'?\') == true) { this.href=\'delete.json?name='
+                                    + simplifyPath([files[i][1]]) + '\'; return true; } else { return false; }">'
+                                    + '<span class="glyphicon glyphicon-remove" aria-hidden="true"></span></a>\n';
+                                sHtmlLi += '</li>\n';
+                                sHtml += sHtmlLi;
+                            }
+                            sHtml += "    </ul>\n";
+                            sHtml += "  </li>\n";
+                            sHtml += "</ul>\n";
+                            sHtml += "<h2>your uploadLog</h2>";
+                            log.innerHTML = sHtml;
+                        }
+                    };
+                    xhr.send();
+                } catch(e) {
+                    if(e.code == 19) {
+                        console.log("This html file should not be load directly. It will be load by upload.php. " +
+                            "Please use a web server or 'php -S 0.0.0.0:8080 index.php'.");
+                    }
+                }
+            })();
+        }
+    </script>
+</head>
 
 <body>
-upload files using drag and drop<br>and download them at /uploads/[filename]
-<button onclick="tUploader.openFilebrowser()">open</button>
-<div id="bar" style="transition:width 2s linear;height:10px;width:0%;background-color:blue;"></div>
+You can upload files by using drag and drop onto this page or click here:
+<button onclick="tUploader.openFilebrowser()">Upload</button>
+<div id="bar"></div>
 <div id="speed"></div>
 <div id="log"></div>
 
-
-
-
-
-<div style="position:fixed;top:0px;bottom:0px;right:0px;left:0px;z-index:100;background-color:rgba(255,255,50,0.6);border:brown dashed 3px;display:none;margin:0px;"></div></body></html>
+</body>
+</html>
