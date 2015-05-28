@@ -73,9 +73,9 @@ function codeToMessage($code)
 
 function simplifyPath($aPathArray, $aStart = '', $aEnd = '')
 {
-    if(is_array($aPathArray) && !preg_match('/^[a-zA-Z]+:*/',join('/', $aPathArray) )) {
+    if(is_array($aPathArray) && !preg_match('/^[a-zA-Z]+:/',join('/', $aPathArray) )) {
         $aPathArray = join('/', $aPathArray);
-    } else if(preg_match('/^[a-zA-Z]+:*/',join('/', $aPathArray) )) {
+    } else if(preg_match('/^[a-zA-Z]+\:/',join('/', $aPathArray) )) {
         return realpath(join('/', $aPathArray));
     }
 
@@ -202,6 +202,7 @@ switch ($file) {
         $folders = array(simplifyPath(array($path)));
         $files = array();
         foreach ($filesAndFolders as $fileOrFolder) {
+            if($fileOrFolder == 'null') continue;
             $filePath = simplifyPath(array($UPLOAD_ROOT, $path, $fileOrFolder), '/');
             if (is_dir($filePath)) {
                 $folders[] = array('dir', $fileOrFolder);
