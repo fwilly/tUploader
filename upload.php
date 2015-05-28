@@ -73,8 +73,10 @@ function codeToMessage($code)
 
 function simplifyPath($aPathArray, $aStart = '', $aEnd = '')
 {
-    if(is_array($aPathArray)) {
+    if(is_array($aPathArray) && !preg_match('/^[a-zA-Z]+:*/',join('/', $aPathArray) )) {
         $aPathArray = join('/', $aPathArray);
+    } else if(preg_match('/^[a-zA-Z]+:*/',join('/', $aPathArray) )) {
+        return realpath(join('/', $aPathArray));
     }
 
     $sPath = str_replace('//', '/', $aStart . $aPathArray);
