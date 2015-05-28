@@ -6,10 +6,11 @@
  * There for it provides a very simple way to handle the file upload from the client side.
  */
 tUploader =(function(document){
-// loading tStabilizer from https://github.com/TobiasNickel/tStabilizer
-tStabilizer=function(c){c=c||Infinity;this.values=[];this.push=function(a){for(this.values.push(a);this.values.length>c;)this.values.shift()};this.getAvarage=function(){return this.getSum()/this.values.length};this.getMax=function(){for(var a=-Infinity,b=this.values.length;b--;)a=a<this.values[b]?this.values[b]:a;return a};this.getMin=function(){for(var a=Infinity,b=this.values.length;b--;)a=a>this.values[b]?this.values[b]:a;return a};this.getSum=function(){for(var a=0,b=this.values.length;b--;)a+=this.values[b];return a}};
-// tmitter.min.js from https://github.com/TobiasNickel/tMitter
-function tMitter(b){b._events={};b.on=function(a,c){a=a.toLowerCase();a in this._events||(this._events[a]=[]);-1===this._events[a].indexOf(c)&&this._events[a].push(c)};b.off=function(a,c){a?c?delete this._events[a][this._events[a].indexOf(c)]:delete this._events[a]:this._events={}};b.trigger=function(a,c){if(a&&this._events[a])for(var b=this._events[a].length;b--;)this._events[a][b](c)}};
+    // loading tStabilizer from https://github.com/TobiasNickel/tStabilizer
+    tStabilizer=function(c){c=c||Infinity;this.values=[];this.push=function(a){for(this.values.push(a);this.values.length>c;)this.values.shift()};this.getAvarage=function(){return this.getSum()/this.values.length};this.getMax=function(){for(var a=-Infinity,b=this.values.length;b--;)a=a<this.values[b]?this.values[b]:a;return a};this.getMin=function(){for(var a=Infinity,b=this.values.length;b--;)a=a>this.values[b]?this.values[b]:a;return a};this.getSum=function(){for(var a=0,b=this.values.length;b--;)a+=this.values[b];return a}};
+
+    // tmitter.min.js from https://github.com/TobiasNickel/tMitter
+    function tMitter(b){b._events={};b.on=function(a,c){a=a.toLowerCase();a in this._events||(this._events[a]=[]);-1===this._events[a].indexOf(c)&&this._events[a].push(c)};b.off=function(a,c){a?c?delete this._events[a][this._events[a].indexOf(c)]:delete this._events[a]:this._events={}};b.trigger=function(a,c){if(a&&this._events[a])for(var b=this._events[a].length;b--;)this._events[a][b](c)}};
 	
 	var body=null;
 	// the input that is used for the filebrowser
@@ -22,8 +23,8 @@ function tMitter(b){b._events={};b.on=function(a,c){a=a.toLowerCase();a in this.
 	};
 	// the droparea for the autoTropzone filling the whole screen
 	var autoDroparea = document.createElement('div');
-	autoDroparea.setAttribute('style','position:fixed;top:0px;bottom:0px;right:0px;left:0px;z-index:100;background-color:rgba(255,255,50,0.6);border:brown dashed 3px;display:none;margin:0px;');
-	
+	autoDroparea.setAttribute('style','position:fixed;top:0;bottom:0;right:0;left:0;z-index:100;background-color:rgba(255,255,50,0.6);border:brown dashed 3px;display:none;margin:0px;');
+
 	//preparing the eventlistener
 	window.addEventListener('load',function(){
 		body  = document.body;
@@ -36,6 +37,7 @@ function tMitter(b){b._events={};b.on=function(a,c){a=a.toLowerCase();a in this.
 		document.addEventListener("dragover", dragover, false);
 		document.addEventListener("drop", drop, false);
 	});
+
 	// used to not let the browse catch the file and displaying it.
 	function dragenter(e) {
 		e.stopPropagation();
@@ -77,7 +79,7 @@ function tMitter(b){b._events={};b.on=function(a,c){a=a.toLowerCase();a in this.
 			}
 		}
 					
-		tUploader.preprocess(e, function(options){
+		tUploader.preprocess(e, function(options) {
 			if(!options)options = {};
 			// stop if there is no file to upload left
 			if(!e.files.length)return;
@@ -152,6 +154,7 @@ function tMitter(b){b._events={};b.on=function(a,c){a=a.toLowerCase();a in this.
 			tUploader.trigger('begin', {event: e});
 		})
 	}
+
 	var tUploader={
 		openFilebrowser: function(){
 			input.click();

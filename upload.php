@@ -1,4 +1,5 @@
 <?php
+
 /**
  * author: Tobias Nickel
  * an file Uplaod and sharing server, do demonstrate the usage of tUploader.js.
@@ -9,10 +10,14 @@
  * -> check the path "/delete.json".
  */
 
+$UPLOAD_ROOT = __DIR__ . '/uploads/';
+$LOG = __DIR__;
+$ERROR_LOG = $LOG . '/error.log';
 
 /**
  * create file with content, and create folder structure if doesn't exist
  * I found this method on http://stackoverflow.com/questions/13372179/creating-a-folder-when-i-run-file-put-contents
+ *
  * @param String $filepath
  * @param String $message
  */
@@ -29,6 +34,7 @@ function forceFilePutContents($filepath, $message)
         }
         file_put_contents($filepath, $message);
     } catch (Exception $e) {
+        logError(__DIR__ . '/error.log', "ERR: error writing '$message' to '$filepath', " . $e->getMessage());
         echo "ERR: error writing '$message' to '$filepath', " . $e->getMessage();
     }
 }
@@ -58,7 +64,6 @@ function codeToMessage($code)
         case UPLOAD_ERR_EXTENSION:
             $message = "File upload stopped by extension";
             break;
-
         default:
             $message = "Unknown upload error";
             break;
@@ -66,51 +71,86 @@ function codeToMessage($code)
     return $message;
 }
 
-function addPathEnd($aPath, $notIfEmpty = false) {
-    if($aPath == "") {
-        if(!$notIfEmpty) {
+function simplifyPath($aPathArray, $aStart = '', $aEnd = '')
+{
+    if(is_array($aPathArray)) {
+        $aPathArray = join('/', $aPathArray);
+    }
+
+    $sPath = str_replace('//', '/', $aStart . $aPathArray);
+
+    if ($aStart == '' && isset($sPath[0]) && $sPath[0] == '/') {
+        $sPath = substr($sPath, 1);
+    }
+    if ($aEnd == '' && substr($sPath, -1, 1) == '/') {
+        $sPath = substr($sPath, 0, -1);
+    }
+
+    return $sPath;
+}
+
+function addPathEnd($aPath, $notIfEmpty = false)
+{
+    if ($aPath == "") {
+        if (!$notIfEmpty) {
             return $aPath . '/';
+        } else {
+            return '/';
         }
-    } else if(substr($aPath, -1, 1) != "/") {
+    } else if (substr($aPath, -1, 1) != "/") {
         return $aPath . '/';
     }
+
     return $aPath;
 }
 
-function removePathEnd($aPath) {
-    if(substr($aPath, -1, 1) == "/") {
+function removePathEnd($aPath)
+{
+    if (substr($aPath, -1, 1) == "/") {
         return substr($aPath, 0, -1);
     }
+
     return $aPath;
+}
+
+function logError($path, $message) {
+    $date = new DateTime();
+    file_put_contents($path, "[" . $date->format('d.m.Y') . " - " . $date->format('H:i:s') . "] " . $message, FILE_APPEND);
 }
 
 // all request urls are rewritten per htaccess from
 //  DOMAIN.TLD:PORT/PATH1/PATHX/FILE.EXT?PARAM1=VALUE1&PARAMX=VALUEX
 // to
 //  DOMAIN.TLD:PORT/upload.php?path=PATH1/PATHX&file=FILE.EXT&PARAM1=VALUE1&PARAMX=VALUEX
-
 // start routing
+
 $sQuery = $_SERVER["QUERY_STRING"];
 parse_str($sQuery, $tQuery);
 $path = $tQuery['path'];
 $file = $tQuery['file'];
-
 switch ($file) {
     case 'delete.json':
-        $name = './uploads/' . addPathEnd($path, true) . $tQuery['name'];
-        if(is_dir($name)) {
+        $name = $UPLOAD_ROOT . addPathEnd($path, true) . $tQuery['name'];
+        if (is_dir($name)) {
             rmdir($name);
             header("Location: /" . addPathEnd($path));
-        } else if(file_exists($name)) {
+        } else if (file_exists($name)) {
             unlink($name);
             header("Location: /" . addPathEnd($path));
         }
         break;
+    case 'download.json':
+        $name = realpath($UPLOAD_ROOT . addPathEnd($path, true) . $tQuery['name']);
+        header('Content-Disposition: attachment; filename="' . $tQuery['name'] . '"');
+        echo file_get_contents($name);
+        break;
     case 'create.json':
-        $name = './uploads/' . addPathEnd($path, true) . $tQuery['name'];
-        if(!file_exists($name)) {
+        $name = $UPLOAD_ROOT . addPathEnd($path, true) . $tQuery['name'];
+        if (!file_exists($name)) {
             if (!mkdir($name, 0777)) {
-                $error = '{error:"cannot create folder \'' . $name . '\' in \'' . getcwd() . '\'",message:"please check the folder rights"}';
+                $error = '{error:"cannot create folder \'' . $name . '\' in \'' .
+                    getcwd() . '\'",message:"please check the folder rights"}';
+                logError($ERROR_LOG, $error);
                 header("HTTP/1.0 500 internal server error");
                 echo $error;
             }
@@ -127,41 +167,47 @@ switch ($file) {
                 if ($error == UPLOAD_ERR_OK) {
                     $tmp_name = $_FILES["files"]["tmp_name"][$key];
                     $name = $_FILES["files"]["name"][$key];
-                    forceFilePutContents("./uploads/" . addPathEnd($path, true) . "$name", file_get_contents($tmp_name));
+                    forceFilePutContents($UPLOAD_ROOT . addPathEnd($path, true) . "$name",
+                        file_get_contents($tmp_name));
                 } else if ($error == UPLOAD_ERR_FORM_SIZE) {
-                    $errorMessage = '{error:' . $error . ',message:"' . codeToMessage($error) . '",maxFileSize:"' . ini_get("post_max_size") . '"}';
+                    $errorMessage = '{error:' . $error . ',message:"' . codeToMessage($error) . '",maxFileSize:"' .
+                        ini_get("post_max_size") . '"}';
                 } else {
                     $errorMessage = '{error:' . $error . ',message:"' . codeToMessage($error) . '"}';
+                    logError($ERROR_LOG, $errorMessage);
                 }
             }
             if ($errorMessage === false) {
 //                header("Location: /" . addPathEnd($path));
-                echo true;
+              echo true;
             } else {
-                header("HTTP/1.0 404 some Error on upload");
-                echo $errorMessage;
+            header("HTTP/1.0 404 some Error on upload");
+            echo $errorMessage;
             }
         } else {
             header("HTTP/1.0 404 missing file");
-            echo '{error:"no File uploaded",message:"please check the file size",maxFileSize:"' . ini_get("post_max_size") . '"}';
+            echo '{error:"no File uploaded",message:"please check the file size",maxFileSize:"' .
+                ini_get("post_max_size") . '"}';
         }
         break;
     case 'maxFileSize.json':
         echo '{maxFileSize:' . ini_get("post_max_size") . '}';
         break;
     case 'uploads.json':
-        $filesAndFolders = scandir('./uploads/' . addPathEnd($path, true));
+        $filesAndFolders = scandir(simplifyPath(array($UPLOAD_ROOT, $path), '/', '/'));
         array_shift($filesAndFolders); // remove '.'
         array_shift($filesAndFolders); // remove '..'
-        array_unshift($filesAndFolders, removePathEnd($path));
-        $f = 0;
+        $folders = array(simplifyPath(array($path)));
+        $files = array();
         foreach ($filesAndFolders as $fileOrFolder) {
-            if($f > 0) {
-                $type = filetype('./uploads/' . addPathEnd($path, true) . $fileOrFolder);
-                $filesAndFolders[$f] = array($type, $fileOrFolder);
+            $filePath = simplifyPath(array($UPLOAD_ROOT, $path, $fileOrFolder), '/');
+            if (is_dir($filePath)) {
+                $folders[] = array('dir', $fileOrFolder);
+            } else {
+                $files[] = array('file', $fileOrFolder);
             }
-            $f++;
         }
+        $filesAndFolders = array_merge($folders, $files);
         $sJsonString = json_encode($filesAndFolders);
         echo $sJsonString;
         break;
@@ -172,9 +218,8 @@ switch ($file) {
         echo file_get_contents('./upload.html');
         break;
     default:
-        $extension = explode('.', $file);
-        $extension = strtolower($extension[count($extension) - 1]);
-        //echo "$extension";
+            $extension = explode('.', $file);
+            $extension = strtolower($extension[count($extension) - 1]);
         switch ($extension) {
             case 'htm':
             case 'html':
@@ -202,8 +247,8 @@ switch ($file) {
             default:
                 header("Content-Type: application/force-download");
         }
-        if (file_exists("./" . addPathEnd($path, true) . $file)) {
-            echo file_get_contents("./" . addPathEnd($path, true) . $file);
+        if (file_exists(simplifyPath(array($UPLOAD_ROOT, $path, $file), '/'))) {
+            echo file_get_contents(simplifyPath(array($UPLOAD_ROOT, $path, $file), '/'));
         } else if (file_exists("./" . $file)) {
             echo file_get_contents("./" . $file);
         } else {

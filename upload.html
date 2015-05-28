@@ -86,7 +86,7 @@
                             var sHtmlLi = "";
                             var sHtml = '<ul>\n';
                             sHtml += '  <li><a href="/" title="/"><span class="glyphicon glyphicon-folder-open" aria-hidden="true"></span></a>';
-                            sHtml += ' <a href="/" title="/"><span class="folder top">uploads</span></a>';
+                            sHtml += ' <a href="/" title="/"><span class="folder top">root</span></a>';
                             var sParentPath = '';
                             var tPathes = path.split('/');
                             for (var n=0; n < tPathes.length; n++) {
@@ -107,29 +107,29 @@
                                 switch (files[i][0]) {
                                     case 'dir':
                                         sHtmlLi += '<a href="'
-                                            + simplifyPath([files[i][1]], false, true)
+                                            + simplifyPath([path, files[i][1]], true, true)
                                             + '" title="go into folder">'
-                                            + '<span class="glyphicon glyphicon-folder-close" aria-hidden="true"></span></a>';
+                                            + '<span class="glyphicon glyphicon-folder-close" data-type="dir" aria-hidden="true"></span></a>';
                                         sHtmlLi += ' <a href="'
-                                            + simplifyPath([files[i][1]], false, true)
+                                            + simplifyPath([path, files[i][1]], true, true)
                                             + '" title="go into folder">'
                                             + '<span class="folder">' + files[i][1] + '</span></a>';
                                         break;
                                     case 'file':
                                     default:
-                                        sHtmlLi += '<a target="_blank" href="/uploads'
+                                        sHtmlLi += '<a target="_blank" href="'
                                             + simplifyPath([path, files[i][1]], true)
                                             + '" title="download file">'
                                             + '<span class="glyphicon glyphicon-file" aria-hidden="true"></span></a>';
-                                        sHtmlLi += ' <a target="_blank" href="/uploads'
+                                        sHtmlLi += ' <a href="'
                                             + simplifyPath([path, files[i][1]], true)
                                             + '" title="download file">'
                                             + '<span class="file">' + files[i][1] + '</span></a>';
                                         break;
                                 }
-                                sHtmlLi += ' <a target="_blank" href="/uploads'
-                                    + simplifyPath([path, files[i][1]], true)
-                                    + '" title="download">'
+                                sHtmlLi += ' <a href="download.json?name='
+                                    + simplifyPath([path, files[i][1]])
+                                    + '" title="download" data-type="file">'
                                     + '<span class="glyphicon glyphicon-download" aria-hidden="true"></span></a>';
                                 sHtmlLi += ' <a href="" onclick="if(confirm(\'Realy remove \\\''
                                     + simplifyPath([path, files[i][1]], true)
@@ -144,6 +144,7 @@
                             sHtml += "</ul>\n";
                             sHtml += "<h2>your uploadLog</h2>";
                             log.innerHTML = sHtml;
+                            console.log(sHtml);
                         }
                     };
                     xhr.send();
