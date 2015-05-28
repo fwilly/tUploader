@@ -208,6 +208,7 @@ tUploader = (function (document) {
         // The style.display is used to show and hide the element.
         autoDropareaElement: autoDroparea,
         autoDroparea: true,
+        domBreadcrumb:null,
         domDirectoryContext: null,
         domProgressBar: null,
         domLog:null,
@@ -233,6 +234,9 @@ tUploader = (function (document) {
                 '<a href="" onclick="if(confirm(\'Realy remove \\\'{{PATH}}\\\'?\') == true) ' +
                 '{ this.href=\'delete.json?name={{NAME}}\'; return true; } else { return false; }">' +
                 '<i class="glyphicon glyphicon-remove" aria-hidden="true"></i></a>\n',
+            buildBreadcrumb: function(pathList) {
+                return '';
+            },
             build:function(path, pathList, fileList){
                 var renderedTemplate = '<ul><li>';
                 renderedTemplate += this.breadcrumbRoot;
@@ -284,9 +288,10 @@ tUploader = (function (document) {
                 return sPath;
             }
         },
-        reloadDirectory: function () {
+        reloadDirectory: function (_callback, insertIntoCurrentDom) {
             try {
                 var xhr = new XMLHttpRequest();
+                xhr.domBreadcrumb = this.domBreadcrumb;
                 xhr.domDirectoryContext = this.domDirectoryContext;
                 xhr.domLog = this.domLog;
                 xhr.template = this.template;
@@ -300,8 +305,17 @@ tUploader = (function (document) {
                             path = uri.directory();
                         }
 
-                        if(this.domDirectoryContext) this.domDirectoryContext.innerHTML = this.template.build(path, path.split('/'), files);
-                        if(this.domLog) this.domLog.innerHTML = this.template.buildLog();
+                        if(insertIntoCurrentDom || insertIntoCurrentDom == undefined) {
+                            if(this.domBreadcrumb) this.domBreadcrumb.innerHtml = this.buildBreadcrumb(path.split('/'));
+                            if(this.domDirectoryContext) this.domDirectoryContext.innerHTML = this.template.build(path, path.split('/'), files);
+                            if(this.domLog) this.domLog.innerHTML = this.template.buildLog();
+                        } else if(_callback) {
+                            _callback({
+                                breadcrumb: this.buildBreadcrumb(path.split('/')),
+                                directory:this.template.build(path, path.split('/'), files),
+                                log: this.template.build(path, path.split('/'), files)
+                            });
+                        }
                     }
                 };
                 xhr.send();
