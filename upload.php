@@ -224,6 +224,9 @@ switch ($file) {
             $extension = explode('.', $file);
             $extension = strtolower($extension[count($extension) - 1]);
         switch ($extension) {
+            case 'txt':
+                header("Content-Type: text/plain");
+                break;
             case 'htm':
             case 'html':
                 header("Content-Type: text/html");
