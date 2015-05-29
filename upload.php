@@ -186,7 +186,8 @@ switch ($file) {
             }
             if ($errorMessage === false) {
 //                header("Location: /" . addPathEnd($path));
-              echo true;
+                $result = array('action' => 'upload', 'type' => 'file','success' => true, 'path' => $path, 'name' => $name);
+              echo json_encode($result);
             } else {
             header("HTTP/1.0 404 some Error on upload");
             echo $errorMessage;

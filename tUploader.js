@@ -281,19 +281,7 @@ tUploader = (function (document) {
                 renderedTemplate += '<ul>';
 
                 for (var i = 1; i < fileList.length; i++) {
-                    switch (fileList[i][0]) {
-                        case 'dir':
-                            var simplyFydDirectoryPath = this.simplifyPath([path, fileList[i][1]], true, true);
-                            renderedTemplate += this.itemDirectory.split('{{PATH}}').join(simplyFydDirectoryPath).split('{{NAME}}').join(fileList[i][1]);
-                            break;
-                        case 'file':
-                        default:
-                            var simplyFydFilePath = this.simplifyPath([path, fileList[i][1]], true);
-                            renderedTemplate += this.itemFile.split('{{PATH}}').join(simplyFydFilePath).split('{{NAME}}').join(fileList[i][1]);
-                    }
-
-                    renderedTemplate = renderedTemplate.replace('{{DOM_DOWNLOAD}}', this.btnDownload.split('{{NAME}}').join(this.simplifyPath([path, fileList[i][1]])));
-                    renderedTemplate = renderedTemplate.replace('{{DOM_DELETE}}', this.btnDelete.split('{{PATH}}').join(this.simplifyPath([path], true)).split('{{NAME}}').join(this.simplifyPath([fileList[i][1]])));
+                    renderedTemplate += this.buildItem(path, fileList[i][1], fileList[i][0]);
                 }
 
                 renderedTemplate += '</ul></li></ul>';
@@ -302,6 +290,22 @@ tUploader = (function (document) {
             },
             buildLog:function() {
                 return this.log;
+            },
+            buildItem:function(path, fileName, fileType) {
+                var renderedTemplate = '';
+                switch (fileType) {
+                    case 'dir':
+                        var simplyFydDirectoryPath = this.simplifyPath([path, fileName], true, true);
+                        renderedTemplate += this.itemDirectory.split('{{PATH}}').join(simplyFydDirectoryPath).split('{{NAME}}').join(fileName);
+                        break;
+                    case 'file':
+                    default:
+                        var simplyFydFilePath = this.simplifyPath([path, fileName], true);
+                        renderedTemplate += this.itemFile.split('{{PATH}}').join(simplyFydFilePath).split('{{NAME}}').join(fileName);
+                }
+
+                renderedTemplate = renderedTemplate.replace('{{DOM_DOWNLOAD}}', this.btnDownload.split('{{NAME}}').join(this.simplifyPath([path, fileName])));
+                return renderedTemplate.replace('{{DOM_DELETE}}', this.btnDelete.split('{{PATH}}').join(this.simplifyPath([path], true)).split('{{NAME}}').join(this.simplifyPath([fileName])));
             },
             simplifyPath: function (aPathParts, aStart, aEnd) {
                 var sStart = typeof aStart === 'undefined' || aStart == false ? '' : '/';
@@ -373,6 +377,11 @@ tUploader = (function (document) {
                 return 1;
             } else {
                 return progressSum / sizeSum;
+            }
+        },
+        log: function(message) {
+            if(tUploader.domLog) {
+                tUploader.domLog.innerHTML += '<br><span class="status success">' + message + '</span>';
             }
         },
         /**
