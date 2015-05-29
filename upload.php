@@ -133,13 +133,18 @@ $file = $tQuery['file'];
 switch ($file) {
     case 'delete.json':
         $name = $UPLOAD_ROOT . addPathEnd($path, true) . $tQuery['name'];
+        $result = array('action' => 'delete', 'success' => false, 'path' => $path, 'name' => $tQuery['name']);
         if (is_dir($name)) {
+            $result['type'] = 'dir';
+            $result['success'] = true;
             rmdir($name);
-            header("Location: /" . addPathEnd($path));
         } else if (file_exists($name)) {
+            $result['type'] = 'file';
+            $result['success'] = true;
             unlink($name);
-            header("Location: /" . addPathEnd($path));
         }
+
+        echo json_encode($result);
         break;
     case 'download.json':
         $name = realpath($UPLOAD_ROOT . addPathEnd($path, true) . $tQuery['name']);

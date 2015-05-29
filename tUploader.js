@@ -212,6 +212,36 @@ tUploader = (function (document) {
         domDirectoryContext: null,
         domProgressBar: null,
         domLog:null,
+        /**
+         *
+         * @param triggerDomObject
+         *  is the dom element that triggered the request.
+         * @returns {XMLHttpRequest}
+         */
+        getXhr: function(triggerDomObject) {
+            var xhr = new XMLHttpRequest();
+            xhr.domBreadcrumb = this.domBreadcrumb;
+            xhr.domDirectoryContext = this.domDirectoryContext;
+            xhr.domLog = this.domLog;
+            xhr.template = this.template;
+            xhr.triggerDomObject = triggerDomObject;
+
+            return xhr;
+        },
+        itemDelete:function(self, path, name) {
+            if(confirm('Realy remove \'' + path + '/' + name +'\'?') == true)  {
+                var xhr = this.getXhr(self);
+                xhr.open('GET', 'delete.json?name=' + name + '&path=' + path, true);
+                xhr.onload = function () {
+                    var response = JSON.parse(xhr.response);
+                    if(response.success == true) {
+                        var listItem = xhr.triggerDomObject.parentNode;
+                        listItem.parentNode.removeChild(listItem);
+                    }
+                };
+                xhr.send();
+            } else { return false; }
+        },
         template:{
             log:'<h2>your uploadLog</h2>',
             btnCreateDirectory:
@@ -231,8 +261,7 @@ tUploader = (function (document) {
             btnDownload:
                 '<a href="download.json?name={{NAME}}" title="download" data-type="file"><i class="glyphicon glyphicon-download" aria-hidden="true"></i></a>',
             btnDelete:
-                '<a href="" onclick="if(confirm(\'Realy remove \\\'{{PATH}}\\\'?\') == true) ' +
-                '{ this.href=\'delete.json?name={{NAME}}\'; return true; } else { return false; }">' +
+                '<a onclick=\'tUploader.itemDelete(this, "{{PATH}}", "{{NAME}}");\'>' +
                 '<i class="glyphicon glyphicon-remove" aria-hidden="true"></i></a>\n',
             buildBreadcrumb: function(pathList) {
                 return '';
@@ -264,7 +293,7 @@ tUploader = (function (document) {
                     }
 
                     renderedTemplate = renderedTemplate.replace('{{DOM_DOWNLOAD}}', this.btnDownload.split('{{NAME}}').join(this.simplifyPath([path, fileList[i][1]])));
-                    renderedTemplate = renderedTemplate.replace('{{DOM_DELETE}}', this.btnDelete.split('{{PATH}}').join(this.simplifyPath([path, fileList[i][1]], true)).split('{{NAME}}').join(this.simplifyPath([fileList[i][1]])));
+                    renderedTemplate = renderedTemplate.replace('{{DOM_DELETE}}', this.btnDelete.split('{{PATH}}').join(this.simplifyPath([path], true)).split('{{NAME}}').join(this.simplifyPath([fileList[i][1]])));
                 }
 
                 renderedTemplate += '</ul></li></ul>';
@@ -290,11 +319,7 @@ tUploader = (function (document) {
         },
         reloadDirectory: function (_callback, insertIntoCurrentDom) {
             try {
-                var xhr = new XMLHttpRequest();
-                xhr.domBreadcrumb = this.domBreadcrumb;
-                xhr.domDirectoryContext = this.domDirectoryContext;
-                xhr.domLog = this.domLog;
-                xhr.template = this.template;
+                var xhr = this.getXhr();
                 xhr.open('GET', 'uploads.json', true);
                 xhr.onload = function () {
                     var files = JSON.parse(xhr.response);
