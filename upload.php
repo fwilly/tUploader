@@ -32,7 +32,15 @@ function forceFilePutContents($filepath, $message)
                 mkdir($folderName, 0777, true);
             }
         }
-        file_put_contents($filepath, $message);
+        $alreadyExist = false;
+        if(file_exists($filepath)) {
+            $alreadyExist = true;
+        }
+
+        return array(
+            'overwrite' => $alreadyExist,
+            'success' => file_put_contents($filepath, $message) ? true : false
+        );
     } catch (Exception $e) {
         logError(__DIR__ . '/error.log', "ERR: error writing '$message' to '$filepath', " . $e->getMessage());
         echo "ERR: error writing '$message' to '$filepath', " . $e->getMessage();
@@ -126,6 +134,14 @@ function logError($path, $message) {
 //  DOMAIN.TLD:PORT/upload.php?path=PATH1/PATHX&file=FILE.EXT&PARAM1=VALUE1&PARAMX=VALUEX
 // start routing
 
+function getDirectory($UPLOAD_ROOT, $path) {
+    $filesAndFolders = scandir(simplifyPath(array($UPLOAD_ROOT, $path), '/', '/'));
+    array_shift($filesAndFolders); // remove '.'
+    array_shift($filesAndFolders); // remove '..'
+
+    return $filesAndFolders;
+}
+
 $sQuery = $_SERVER["QUERY_STRING"];
 parse_str($sQuery, $tQuery);
 $path = $tQuery['path'];
@@ -160,9 +176,14 @@ switch ($file) {
                 logError($ERROR_LOG, $error);
                 header("HTTP/1.0 500 internal server error");
                 echo $error;
+                return null;
             }
+            $filesAndFolders = getDirectory($UPLOAD_ROOT, $path);
+            $position = array_search($tQuery['name'], $filesAndFolders, true);
+            echo json_encode(array('action' => 'create', 'type' => 'dir', 'success' => true, 'path' => $path, 'name' => $tQuery['name'], 'order' => $position));
+        } else {
+            echo json_encode(array('action' => 'create', 'type' => 'dir', 'success' => false, 'path' => $path, 'name' => $tQuery['name']));
         }
-        header("Location: /" . addPathEnd($path));
         break;
     case 'upload.json':
         // $_FILES is from PHP
@@ -170,11 +191,12 @@ switch ($file) {
         // and this code is from http://php.net/manual/en/function.move-uploaded-file.php
         if (isset($_FILES["files"])) {
             $errorMessage = false; // if true, the script will not return true; errors discribe themselve
+            $saveResult = array();
             foreach ($_FILES["files"]["error"] as $key => $error) {
                 if ($error == UPLOAD_ERR_OK) {
                     $tmp_name = $_FILES["files"]["tmp_name"][$key];
                     $name = $_FILES["files"]["name"][$key];
-                    forceFilePutContents($UPLOAD_ROOT . addPathEnd($path, true) . "$name",
+                    $saveResult = forceFilePutContents($UPLOAD_ROOT . addPathEnd($path, true) . "$name",
                         file_get_contents($tmp_name));
                 } else if ($error == UPLOAD_ERR_FORM_SIZE) {
                     $errorMessage = '{error:' . $error . ',message:"' . codeToMessage($error) . '",maxFileSize:"' .
@@ -185,8 +207,10 @@ switch ($file) {
                 }
             }
             if ($errorMessage === false) {
+                $filesAndFolders = getDirectory($UPLOAD_ROOT, $path);
+                $position = array_search($name, $filesAndFolders, true);
 //                header("Location: /" . addPathEnd($path));
-                $result = array('action' => 'upload', 'type' => 'file','success' => true, 'path' => $path, 'name' => $name);
+                $result = array_merge(array('action' => 'upload', 'type' => 'file', 'path' => $path, 'name' => $name, 'order' => $position), $saveResult);
               echo json_encode($result);
             } else {
             header("HTTP/1.0 404 some Error on upload");
@@ -202,9 +226,7 @@ switch ($file) {
         echo '{maxFileSize:' . ini_get("post_max_size") . '}';
         break;
     case 'uploads.json':
-        $filesAndFolders = scandir(simplifyPath(array($UPLOAD_ROOT, $path), '/', '/'));
-        array_shift($filesAndFolders); // remove '.'
-        array_shift($filesAndFolders); // remove '..'
+        $filesAndFolders = getDirectory($UPLOAD_ROOT, $path);
         $folders = array(simplifyPath(array($path)));
         $files = array();
         foreach ($filesAndFolders as $fileOrFolder) {

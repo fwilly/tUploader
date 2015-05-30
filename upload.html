@@ -38,7 +38,15 @@
                 var listItem = document.createElement('LI');
                 listItem.innerHTML = tUploader.template.buildItem(response.path, response.name, response.type);
                 var directory = tUploader.domDirectoryContext.children[0].children[0];
-                directory.children[directory.children.length - 1].appendChild(listItem);
+                directory = directory.children[directory.children.length - 1];
+                if(!response.overwrite) {
+                    if(directory.children.length > response.order) {
+                        directory.insertBefore(listItem, directory.children[response.order]);
+                    } else {
+                        directory.appendChild(listItem);
+                    }
+                    tUploader.domProgressBar.style.width = '0%';
+                }
             });
 
             tUploader.on("error", function (params) {

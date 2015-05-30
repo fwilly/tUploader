@@ -242,11 +242,38 @@ tUploader = (function (document) {
                 xhr.send();
             } else { return false; }
         },
+        addFolder:function(self, path) {
+            var newFolder = prompt("Folder name:");
+
+            if(newFolder != "") {
+                var xhr = this.getXhr(self);
+                xhr.open('GET', 'create.json?name=' + newFolder + '&path=' + path, true);
+                xhr.onload = function () {
+                    var response = JSON.parse(xhr.response);
+                    var listItem = document.createElement('LI');
+                    listItem.innerHTML = tUploader.template.buildItem(response.path, response.name, response.type);
+                    var directory = tUploader.domDirectoryContext.children[0].children[0];
+                    directory = directory.children[directory.children.length - 1];
+                    if(response.success == true) {
+                        if(!response.overwrite) {
+                            if(directory.children.length > response.order) {
+                                directory.insertBefore(listItem, directory.children[response.order]);
+                            } else {
+                                directory.appendChild(listItem);
+                            }
+                        }
+                        tUploader.log('Folder created.');
+                    } else {
+                        tUploader.log('Folder already exist.');
+                    }
+                };
+                xhr.send();
+            } else { return false; }
+        },
         template:{
             log:'<h2>your uploadLog</h2>',
             btnCreateDirectory:
-                '<a href="" onclick=\'var newFolder = prompt("Folder name:"); if(newFolder != "") ' +
-                '{ this.href = "create.json?name=" + newFolder; return true; } return false;\' title="create folder"><i class="glyphicon glyphicon-plus-sign"></i></a>',
+                '<a onclick=\'tUploader.addFolder(this, "{{PATH}}");\' title="create folder"><i class="glyphicon glyphicon-plus-sign"></i></a>',
             breadcrumbRoot:
                 '<a href="/" title="/"><i class="glyphicon glyphicon-folder-open" aria-hidden="true"></i></a>' +
                 '<a href="/" title="/"><span class="folder top" style="margin: 0 5px;">root</span></a>',
@@ -276,7 +303,7 @@ tUploader = (function (document) {
                     renderedTemplate += this.breadcrumbPart.split('{{PARENT_PATH}}').join(sParentPath).split('{{PathName}}').join(pathList[n]);
                 }
 
-                renderedTemplate += this.btnCreateDirectory;
+                renderedTemplate += this.btnCreateDirectory.split('{{PATH}}').join(path);
 
                 renderedTemplate += '<ul>';
 
