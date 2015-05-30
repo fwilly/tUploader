@@ -1,7 +1,7 @@
 /**
  * @author: Michael Kirchner
  * @author: Mario gleichmann
- *@description: The tDirectory is a extension for the tUploader to handle Directory operations.
+ * @description: The tDirectory is a extension for the tUploader to handle Directory operations.
  */
 tUploader.extend({
     domBreadcrumb: null,
