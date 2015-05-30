@@ -107,10 +107,15 @@ class tUploader
             $action = $this->actionHandling['default'];
         }
 
-        $class = $action['class'];
+        $class = isset($action['class']) ? $action['class'] : null;
         $function = $action['function'];
         $fileName = isset($tQuery['name']) ? $tQuery['name'] : null;
-        $class->$function($file, $path, $fileName);
+
+        if($class) {
+            $class->$function($file, $path, $fileName);
+        } else {
+            $function($file, $path, $fileName);
+        }
     }
 
     public function delete($action, $path, $fileName) {
