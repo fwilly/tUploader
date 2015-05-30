@@ -9,6 +9,7 @@ tUploader.extend({
     domProgressBar: null,
     domLog: null,
     useOverwriteDialog: true,
+    method:'GET',
     /**
      *
      * @param triggerDomObject
@@ -148,7 +149,7 @@ tUploader.extend({
     reloadDirectory: function (_callback, insertIntoCurrentDom) {
         try {
             var xhr = this.getXhr(this);
-            xhr.open('GET', tUploader.tld() + 'uploads.json', true);
+            xhr.open(tUploader.method, tUploader.tld() + 'uploads.json', true);
             xhr.onload = function () {
                 var files = JSON.parse(xhr.response);
                 if (files != null && files instanceof Array) {
