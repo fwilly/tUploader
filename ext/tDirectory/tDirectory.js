@@ -8,6 +8,7 @@ tUploader.extend({
     domDirectoryContext: null,
     domProgressBar: null,
     domLog: null,
+    useOverwriteDialog: true,
     /**
      *
      * @param triggerDomObject
@@ -222,6 +223,6 @@ tUploader.on("success", function (params) {
     tUploader.onSuccess(params);
 });
 
-tUploader.preprocess = function (e, callback) { callback(); };
+tUploader.preprocess = function (e, callback) { callback({get:{useOverwriteDialog:tUploader.useOverwriteDialog}}); };
 
 tUploader.on("begin", function (params) { tUploader.onBegin(params); });

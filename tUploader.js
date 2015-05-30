@@ -139,7 +139,7 @@ tUploader = (function (document) {
             var getParams = '';
             if (options.get) {
                 for (i in options.get) {
-                    getParams += (getParams.length ? '' : '?') + i + options.get[i];
+                    getParams += (getParams.length ? '' : '?') + i + '=' + options.get[i];
                 }
             }
 
