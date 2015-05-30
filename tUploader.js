@@ -237,6 +237,9 @@ tUploader = (function (document) {
                     if(response.success == true) {
                         var listItem = xhr.triggerDomObject.parentNode;
                         listItem.parentNode.removeChild(listItem);
+                        tUploader.log('Folder deleted.');
+                    } else {
+                        tUploader.log('Folder is not empty.');
                     }
                 };
                 xhr.send();

@@ -152,8 +152,11 @@ switch ($file) {
         $result = array('action' => 'delete', 'success' => false, 'path' => $path, 'name' => $tQuery['name']);
         if (is_dir($name)) {
             $result['type'] = 'dir';
-            $result['success'] = true;
-            rmdir($name);
+            $count = count(scandir($name));
+            if($count == 2) {
+                $result['success'] = true;
+                rmdir($name);
+            }
         } else if (file_exists($name)) {
             $result['type'] = 'file';
             $result['success'] = true;
