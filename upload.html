@@ -38,7 +38,7 @@
             // fileList that have been uploaded before
             (function(){
                 var xhr = new XMLHttpRequest()
-                xhr.open('GET', 'uploads.json', true);
+                xhr.open('GET', tUploader.tld() + 'uploads.json', true);
                 xhr.onload = function(e){
                     var files = JSON.parse(xhr.response);
                     console.log(files);

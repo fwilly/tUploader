@@ -125,7 +125,7 @@ tUploader = (function (document) {
 
             e.bitrate = new tStabilizer(5);
             tUploader.uploads.push(e);
-            options.path = options.path || tUploader.stdUploadPath;
+            options.path = options.path || tUploader.tld() + tUploader.stdUploadPath;
 
             // prepare the files for upload
             var files = e.files;
@@ -195,6 +195,8 @@ tUploader = (function (document) {
     }
 
     var tUploader = {
+        host:'',
+        port:'',
         stdUploadPath: 'upload.json',
         acceptedFileExtensions: null,
         input: input,                   // the input used to open the filebrowser
@@ -208,6 +210,13 @@ tUploader = (function (document) {
         // The style.display is used to show and hide the element.
         autoDropareaElement: autoDroparea,
         autoDroparea: true,
+        tld:function() {
+            var tld = '';
+            tld += this.host.length > 0 ? this.host : '';
+            tld += parseInt(this.port) ? ':' + this.port : '';
+
+            return tld.length > 0 ? tld + '/' : '';
+        },
         /**
          * @author Michael Kirchner
          *

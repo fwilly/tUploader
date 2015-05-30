@@ -16,6 +16,8 @@
             }
             // configure the uploader
             tUploader.stdUploadPath = "upload.json";
+            tUploader.host = 'http://localhost';
+            tUploader.port = 8001;
             tUploader.varName = 'files';
             tUploader.autoDroparea = true;
             tUploader.domDirectoryContext = document.getElementById('directory');

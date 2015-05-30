@@ -147,7 +147,7 @@ tUploader.extend({
     reloadDirectory: function (_callback, insertIntoCurrentDom) {
         try {
             var xhr = this.getXhr(this);
-            xhr.open('GET', 'uploads.json', true);
+            xhr.open('GET', tUploader.tld() + 'uploads.json', true);
             xhr.onload = function () {
                 var files = JSON.parse(xhr.response);
                 if (files != null && files instanceof Array) {
