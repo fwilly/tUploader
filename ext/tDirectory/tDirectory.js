@@ -8,6 +8,7 @@ tUploader.extend({
     domDirectoryContext: null,
     domProgressBar: null,
     domLog: null,
+    domSpeed: null,
     useOverwriteDialog: true,
     method:'GET',
     /**
@@ -186,8 +187,13 @@ tUploader.extend({
         }
     },
     onProgress: function(params) {
-        document.getElementById("speed").innerHTML = params.bitrate ? (params.bitrate) + 'kb/s' : "";
-        tUploader.domProgressBar.style.width = parseInt(params.globalProgress * 100) + '%';
+        if(tUploader.domSpeed) {
+            tUploader.domSpeed.innerHTML = params.bitrate ? (params.bitrate) + 'kb/s' : "";
+        }
+
+        if(tUploader.domProgressBar) {
+            tUploader.domProgressBar.style.width = parseInt(params.globalProgress * 100) + '%';
+        }
     },
     onError: function(params) {
         if(params) {
