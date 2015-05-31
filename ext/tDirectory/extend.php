@@ -4,8 +4,9 @@
  */
 
 include_once 'tDirectory.php';
+include_once __DIR__ . '/config.php';
 
-$tDirectory = new tDirectory($this);
+$tDirectory = new tDirectory($this, $config);
 
 $this->actionHandling['uploads.json']['class'] = $tDirectory;
 $this->actionHandling['/']['class'] = $tDirectory;

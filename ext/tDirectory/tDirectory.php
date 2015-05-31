@@ -8,14 +8,23 @@ class tDirectory
 {
     /** @var tUploader */
     private $tUploader = null;
+    private $accessControlAllowOrigin = null;
 
-    public function __construct($tUploader)
+    public function __construct($tUploader, $config)
     {
         $this->tUploader = $tUploader;
+        if(isset($config['accessControlAllowOrigin'])) $this->accessControlAllowOrigin = $config['accessControlAllowOrigin'];
+    }
+
+    private function header() {
+        if($this->accessControlAllowOrigin) {
+            header("Access-Control-Allow-Origin: " . $this->accessControlAllowOrigin);
+        }
     }
 
     public function delete($action, $path, $fileName)
     {
+        $this->header();
         $name = $this->tUploader->getRootDirectory() . $this->addPathEnd($path, true) . $fileName;
         $result = array('action' => 'delete', 'success' => false, 'path' => $path, 'name' => $fileName);
         if (is_dir($name)) {
@@ -36,6 +45,8 @@ class tDirectory
 
     public function uploads($action, $path)
     {
+        $this->header();
+
         $filesAndFolders = $this->getDirectory($path);
         $folders = array($this->simplifyPath(array($path)));
         $files = array();
@@ -53,6 +64,8 @@ class tDirectory
     }
 
     public function create($action, $path, $fileName) {
+        $this->header();
+
         $name = $this->tUploader->getRootDirectory() . '/' . $this->addPathEnd($path, true) . $fileName;
         if (!file_exists($name)) {
             if (!mkdir($name, 0777)) {
@@ -71,6 +84,8 @@ class tDirectory
     }
 
     public function download($action, $path, $fileName) {
+        $this->header();
+
         $name = realpath($this->tUploader->getRootDirectory() . $this->addPathEnd($path, true) . $fileName);
         header('Content-Disposition: attachment; filename="' . $fileName . '"');
         echo file_get_contents($name);
@@ -171,9 +186,8 @@ class tDirectory
 
     public function upload($action, $path)
     {
-        // $_FILES is from PHP
-        // ['files'] is from the tUploader's .varName Property
-        // and this code is from http://php.net/manual/en/function.move-uploaded-file.php
+        $this->header();
+
         $name = null;
         if (isset($_FILES["files"])) {
             $errorMessage = false; // if true, the script will not return true; errors discribe themselve
@@ -208,6 +222,8 @@ class tDirectory
     }
 
     public function other($action, $path) {
+        $this->header();
+
         $extension = explode('.', $action);
         $extension = strtolower($extension[count($extension) - 1]);
 
