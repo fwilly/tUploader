@@ -154,6 +154,7 @@ tUploader = (function (document) {
             // Set up the request.
             var xhr = new XMLHttpRequest();
             xhr.open('POST', options.path + (getParams.length ? getParams : ''), true);
+            xhr.withCredentials = tUploader.withCredentials;
             // Set up a handler for when the request finishes.
             xhr.onload = function (ep) {
                 if (xhr.status === 200) {
@@ -195,6 +196,7 @@ tUploader = (function (document) {
     }
 
     var tUploader = {
+        withCredentials:false,
         host:'',
         port:'',
         stdUploadPath: 'upload.json',

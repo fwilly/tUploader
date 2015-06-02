@@ -213,7 +213,10 @@ tUploader.extend({
             } else {
                 directory.appendChild(listItem);
             }
-            tUploader.domProgressBar.style.width = '0%';
+
+            if(tUploader.domProgressBar) {
+                tUploader.domProgressBar.style.width = '0%';
+            }
         }
     },
     onBegin:function(params) {

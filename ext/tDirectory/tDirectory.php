@@ -8,18 +8,23 @@ class tDirectory
 {
     /** @var tUploader */
     private $tUploader = null;
-    private $accessControlAllowOrigin = null;
+    private $header = array();
 
     public function __construct($tUploader, $config)
     {
         $this->tUploader = $tUploader;
-        if(isset($config['accessControlAllowOrigin'])) $this->accessControlAllowOrigin = $config['accessControlAllowOrigin'];
+        if(isset($config['header'])) $this->header = $config['header'];
     }
 
     private function header() {
-        if($this->accessControlAllowOrigin) {
-            header("Access-Control-Allow-Origin: " . $this->accessControlAllowOrigin);
-        }
+            foreach($this->header as $key => $value) {
+                header("$key: $value");
+            }
+//            header("Access-Control-Allow-Headers: Content-Type, Depth, User-Agent, X-File-Size, X-Requested-With, If-Modified-Since, X-File-Name, Cache-Control");
+//            header("Access-Control-Allow-Origin: http://localhost:8002");
+//            header("Access-Control-Allow-Methods: POST, GET, OPTIONS, DELETE, PUT");
+//            header('Access-Control-Allow-Credentials: true');
+//            header('Access-Control-Max-Age: 1728000');
     }
 
     public function delete($action, $path, $fileName)
@@ -186,9 +191,11 @@ class tDirectory
 
     public function upload($action, $path)
     {
+        file_put_contents(__DIR__ . '/text.txt', var_export(array($action, $path, $_FILES), true));
         $this->header();
 
         $name = null;
+
         if (isset($_FILES["files"])) {
             $errorMessage = false; // if true, the script will not return true; errors discribe themselve
             $saveResult = array();
