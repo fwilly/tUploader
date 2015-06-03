@@ -165,11 +165,11 @@ tUploader.extend({
                         if (this.domDirectoryContext) this.domDirectoryContext.innerHTML = this.template.build(path, path.split('/'), files);
                         if (this.domLog) this.domLog.innerHTML = this.template.buildLog();
                     } else if (_callback) {
-                        _callback({
-                            breadcrumb: this.template.buildBreadcrumb(path.split('/')),
-                            directory: this.template.build(path, path.split('/'), files),
-                            log: this.template.build(path, path.split('/'), files)
-                        });
+                        _callback(
+                            this.template.buildBreadcrumb(path.split('/')),
+                            this.template.build(path, path.split('/'), files),
+                            this.template.build(path, path.split('/'), files)
+                        );
                     }
                 }
             };
