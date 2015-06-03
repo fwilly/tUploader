@@ -161,12 +161,12 @@ tUploader.extend({
                     }
 
                     if (insertIntoCurrentDom || insertIntoCurrentDom == undefined) {
-                        if (this.domBreadcrumb) this.domBreadcrumb.innerHtml = this.buildBreadcrumb(path.split('/'));
+                        if (this.domBreadcrumb) this.domBreadcrumb.innerHtml = this.template.buildBreadcrumb(path.split('/'));
                         if (this.domDirectoryContext) this.domDirectoryContext.innerHTML = this.template.build(path, path.split('/'), files);
                         if (this.domLog) this.domLog.innerHTML = this.template.buildLog();
                     } else if (_callback) {
                         _callback({
-                            breadcrumb: this.buildBreadcrumb(path.split('/')),
+                            breadcrumb: this.template.buildBreadcrumb(path.split('/')),
                             directory: this.template.build(path, path.split('/'), files),
                             log: this.template.build(path, path.split('/'), files)
                         });
