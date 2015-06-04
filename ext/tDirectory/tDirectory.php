@@ -20,11 +20,6 @@ class tDirectory
             foreach($this->header as $key => $value) {
                 header("$key: $value");
             }
-//            header("Access-Control-Allow-Headers: Content-Type, Depth, User-Agent, X-File-Size, X-Requested-With, If-Modified-Since, X-File-Name, Cache-Control");
-//            header("Access-Control-Allow-Origin: http://localhost:8002");
-//            header("Access-Control-Allow-Methods: POST, GET, OPTIONS, DELETE, PUT");
-//            header('Access-Control-Allow-Credentials: true');
-//            header('Access-Control-Max-Age: 1728000');
     }
 
     public function delete($action, $path, $fileName)

@@ -30,7 +30,7 @@ tUploader.extend({
     itemDelete: function (self, path, name) {
         if (confirm('Realy remove \'' + path + '/' + name + '\'?') == true) {
             var xhr = this.getXhr(self);
-            xhr.open('GET', 'delete.json?name=' + name + '&path=' + path, true);
+            xhr.open('GET', this.tld() + 'delete.json?name=' + name + '&path=' + path, true);
             xhr.onload = function () {
                 var response = JSON.parse(xhr.response);
                 if (response.success == true) {
