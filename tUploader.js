@@ -135,13 +135,6 @@ tUploader = (function (document) {
                 // Add the file to the request.
                 formData.append(tUploader.varName + '[]', file, file.name);
             }
-            //prepare getData
-            var getParams = '';
-            if (options.get) {
-                for (i in options.get) {
-                    getParams += (getParams.length ? '' : '?') + i + '=' + options.get[i];
-                }
-            }
 
             //add postData
             if (options.post) {
@@ -150,48 +143,7 @@ tUploader = (function (document) {
                 }
             }
 
-
-            // Set up the request.
-            var xhr = new XMLHttpRequest();
-            xhr.open('POST', options.path + (getParams.length ? getParams : ''), true);
-            xhr.withCredentials = tUploader.withCredentials;
-            // Set up a handler for when the request finishes.
-            xhr.onload = function (ep) {
-                if (xhr.status === 200) {
-                    tUploader.uploads.splice(tUploader.uploads.indexOf(e), 1);
-                    tUploader.trigger('progress', {event: e, progress: 1, bitrate: 0});
-                    tUploader.trigger('success', {event: e, response: xhr.response});
-                } else {
-                    tUploader.trigger('error', {event: e, response: xhr.response});
-                }
-            };
-            xhr.onerror = function (ep) {
-                tUploader.trigger('error', {event: e, errorEvent: ep, response: xhr.response});
-            }
-            var lastLoaded = 0;
-            var lastTimeStamp = 0;
-            xhr.upload.addEventListener('progress', function (ep) {
-                var progress = ep.loaded / ep.total;
-                var deltaLoaded = ep.loaded - lastLoaded;
-                var deltaTime = ep.timeStamp - lastTimeStamp;
-                var bitrate = parseInt(deltaLoaded / deltaTime);
-                e.bitrate.push(bitrate);
-                e.total = ep.total;
-                e.loaded = ep.loaded;
-                e.progress = progress;
-                tUploader.trigger('progress', {
-                    event: e,
-                    progressEvent: ep,
-                    progress: progress,
-                    bitrate: e.bitrate.getAvarage(),
-                    globalProgress: tUploader.getGlobalProgress()
-                });
-                lastLoaded = ep.loaded;
-                lastTimeStamp = ep.timeStamp;
-            });
-            // Send the Data.
-            xhr.send(formData);
-            tUploader.trigger('begin', {event: e});
+            tUploader.upload(formData, options, e);
         })
     }
 
@@ -222,6 +174,64 @@ tUploader = (function (document) {
         /**
          * @author Michael Kirchner
          *
+         * execute the upload of the file.
+         *
+         * @param formData FormData
+         */
+        upload:function(formData, options, e) {
+            //prepare getData
+            var getParams = '';
+            if (options.get) {
+                for (i in options.get) {
+                    getParams += (getParams.length ? '' : '?') + i + '=' + options.get[i];
+                }
+            }
+
+            // Set up the request.
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', options.path + (getParams.length ? getParams : ''), true);
+            xhr.withCredentials = tUploader.withCredentials;
+            // Set up a handler for when the request finishes.
+            xhr.onload = function (ep) {
+                if (xhr.status === 200) {
+                    tUploader.uploads.splice(tUploader.uploads.indexOf(e), 1);
+                    tUploader.trigger('progress', {event: e, progress: 1, bitrate: 0});
+                    tUploader.trigger('success', {event: e, response: xhr.response});
+                } else {
+                    tUploader.trigger('error', {event: e, response: xhr.response});
+                }
+            };
+            xhr.onerror = function (ep) {
+                tUploader.trigger('error', {event: e, errorEvent: ep, response: xhr.response});
+            };
+            var lastLoaded = 0;
+            var lastTimeStamp = 0;
+            xhr.upload.addEventListener('progress', function (ep) {
+                var progress = ep.loaded / ep.total;
+                var deltaLoaded = ep.loaded - lastLoaded;
+                var deltaTime = ep.timeStamp - lastTimeStamp;
+                var bitrate = parseInt(deltaLoaded / deltaTime);
+                e.bitrate.push(bitrate);
+                e.total = ep.total;
+                e.loaded = ep.loaded;
+                e.progress = progress;
+                tUploader.trigger('progress', {
+                    event: e,
+                    progressEvent: ep,
+                    progress: progress,
+                    bitrate: e.bitrate.getAvarage(),
+                    globalProgress: tUploader.getGlobalProgress()
+                });
+                lastLoaded = ep.loaded;
+                lastTimeStamp = ep.timeStamp;
+            });
+            // Send the Data.
+            xhr.send(formData);
+            tUploader.trigger('begin', {event: e});
+        },
+        /**
+         * @author Michael Kirchner
+         *
          * Add extension to tUploader
          * @param extension
          */
@@ -229,6 +239,7 @@ tUploader = (function (document) {
             if(extension instanceof Object) {
                 for (var item in extension) {
                     if (extension.hasOwnProperty(item)) {
+                        if(typeof extension[item] == 'function' && this[item]) extension[item].__parent = this[item];
                         this[item] = extension[item];
                     }
                 }
