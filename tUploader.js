@@ -177,6 +177,8 @@ tUploader = (function (document) {
          * execute the upload of the file.
          *
          * @param formData FormData
+         * @param options Object
+         * @param e DOM Event
          */
         upload:function(formData, options, e) {
             //prepare getData
@@ -233,6 +235,8 @@ tUploader = (function (document) {
          * @author Michael Kirchner
          *
          * Add extension to tUploader
+         * The __parent function is a function that was the function before overwrite with a new function
+         *
          * @param extension
          */
         extend:function(extension) {
